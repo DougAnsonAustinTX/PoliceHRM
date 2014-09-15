@@ -8,7 +8,7 @@ package no.nordicsemi.android.dfu;
 
 public final class R {
 	public static final class drawable {
-		public static final int stat_dfu = 0x7f020051;
+		public static final int stat_dfu = 0x7f02004e;
 	}
 	public static final class string {
 		public static final int dfu_status_aborted = 0x7f060029;
