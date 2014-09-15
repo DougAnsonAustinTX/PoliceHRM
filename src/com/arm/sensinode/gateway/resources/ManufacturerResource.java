@@ -1,7 +1,6 @@
 package com.arm.sensinode.gateway.resources;
 
-import android.os.Build;
-
+import com.arm.sensinode.gateway.SensinodeService;
 import com.sensinode.coap.MediaTypes;
 import com.sensinode.coap.Code;
 import com.sensinode.coap.exception.CoapCodeException;
@@ -23,7 +22,7 @@ public class ManufacturerResource extends CoapResource {
 
     @Override
     public void get(CoapExchange ex) throws CoapCodeException {
-        ex.setResponseBody(Build.MANUFACTURER);
+    	ex.setResponseBody(SensinodeService.DEFAULT_MFG_INFO);
         ex.setResponseCode(Code.C205_CONTENT);
         ex.getResponseHeaders().setContentType(MediaTypes.CT_TEXT_PLAIN);
         ex.sendResponse();

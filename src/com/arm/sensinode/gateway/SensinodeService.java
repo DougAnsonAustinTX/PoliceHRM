@@ -108,6 +108,8 @@ public class SensinodeService extends Service {
 	public static String DEFAULT_MDS_DOMAIN = "domain";
 	public static String DEFAULT_ENDPOINT_NAME = "police-1234";
 	public static String DEFAULT_ENPOINT_TYPE = "policeman HRM";
+	public static String DEFAULT_MODEL_INFO = "police HRM-MDS gateway";
+	public static String DEFAULT_MFG_INFO = "Nordic+ARM mbed";
 	//
 	// END TUNABLES
 	//

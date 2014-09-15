@@ -2,6 +2,7 @@ package com.arm.sensinode.gateway.resources;
 
 import android.content.Context;
 
+import com.arm.sensinode.gateway.SensinodeService;
 import com.sensinode.coap.MediaTypes;
 import com.sensinode.coap.Code;
 import com.sensinode.coap.exception.CoapCodeException;
@@ -24,7 +25,7 @@ public class ModelResource extends CoapResource {
 
     @Override
     public void get(CoapExchange ex) throws CoapCodeException {
-        ex.setResponseBody("Panic Button Gateway");
+        ex.setResponseBody(SensinodeService.DEFAULT_MODEL_INFO);
         ex.setResponseCode(Code.C205_CONTENT);
         ex.getResponseHeaders().setContentType(MediaTypes.CT_TEXT_PLAIN);
         ex.sendResponse();
