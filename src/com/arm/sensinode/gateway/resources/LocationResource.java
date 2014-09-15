@@ -2,8 +2,6 @@ package com.arm.sensinode.gateway.resources;
 
 import android.content.Context;
 import android.location.Location;
-import android.os.Bundle;
-import android.widget.Toast;
 
 import com.sensinode.coap.Code;
 import com.sensinode.coap.MediaTypes;
@@ -16,12 +14,8 @@ import com.sensinode.coap.utils.AbstractObservableResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.LocationClient;
+import com.arm.sensinode.gateway.SensinodeService;
 import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,7 +25,7 @@ public class LocationResource extends AbstractObservableResource implements Loca
     private final static Logger LOGGER = LoggerFactory.getLogger(LocationResource.class);
     
     // Location Resource
-    private String last_location = "37.404064,-121.973136"; 
+    private String last_location = SensinodeService.DEFAULT_LOCATION_COORDS; 
  
     // Minimum update interval (in seconds)
     private final int UPDATE_INTERVAL = 120;
@@ -55,7 +49,8 @@ public class LocationResource extends AbstractObservableResource implements Loca
 
     private void nt() {
         Thread nt = new Thread(new Runnable() {
-            @Override
+            @SuppressWarnings("deprecation")
+			@Override
             public void run() {
                 try {
                     notifyChange(last_location.getBytes(), MediaTypes.CT_TEXT_PLAIN, true);

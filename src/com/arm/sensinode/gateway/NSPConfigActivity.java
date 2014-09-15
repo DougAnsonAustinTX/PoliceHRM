@@ -9,8 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.telephony.TelephonyManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -320,7 +318,7 @@ public class NSPConfigActivity extends Activity {
             return false;
         }
         if (server_port <= 0) {
-            server_port_box.setText(CoapConstants.DEFAULT_PORT);
+            server_port_box.setText(SensinodeService.DEFAULT_MDS_COAP_PORT);
             return false;
         }
 
@@ -345,7 +343,7 @@ public class NSPConfigActivity extends Activity {
      */
     private void readPreferences(SharedPreferences prefs) {
         server_address = prefs.getString("server_address", SensinodeService.DEFAULT_MDS_IPADDRESS);
-        server_port = prefs.getInt("server_port", CoapConstants.DEFAULT_PORT);
+        server_port = prefs.getInt("server_port", SensinodeService.DEFAULT_MDS_COAP_PORT);
         server_domain = prefs.getString("server_domain", SensinodeService.DEFAULT_MDS_DOMAIN);
         endpoint_id = prefs.getString("endpoint_id",SensinodeService.DEFAULT_ENDPOINT_NAME);
 
@@ -371,14 +369,6 @@ public class NSPConfigActivity extends Activity {
       if (endpoint_id != null && endpoint_id.isEmpty() == false) editor.putString("endpoint_id", endpoint_id);
       editor.commit();
     }
-
-    /**
-     * Gateway Device Name/ID
-     *
-     * @return String
-     *          Contains the retrieved device ID.
-     */
-    private String getDeviceId() { return endpoint_id; }
 
     /**
      * Gets called when the activity has resumed.

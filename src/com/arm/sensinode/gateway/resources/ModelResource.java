@@ -13,7 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ModelResource extends CoapResource {
-    private final static Logger LOGGER = LoggerFactory.getLogger(ModelResource.class);
+    @SuppressWarnings("unused")
+	private final static Logger LOGGER = LoggerFactory.getLogger(ModelResource.class);
     Context context;
 
     public ModelResource() {
@@ -23,7 +24,8 @@ public class ModelResource extends CoapResource {
         this.getLink().setContentType(MediaTypes.CT_TEXT_PLAIN);
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public void get(CoapExchange ex) throws CoapCodeException {
         ex.setResponseBody(SensinodeService.DEFAULT_MODEL_INFO);
         ex.setResponseCode(Code.C205_CONTENT);

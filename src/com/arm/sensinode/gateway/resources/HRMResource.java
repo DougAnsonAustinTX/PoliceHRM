@@ -19,7 +19,6 @@ public class HRMResource extends AbstractObservableResource {
     
     public static String HRM_RESOURCE_NAME = "/dev/addldata";
 
-    private final Context context;
     private String HRM_value = "0";       	 // HRM value
      
     // HACK
@@ -27,7 +26,6 @@ public class HRMResource extends AbstractObservableResource {
 
     public HRMResource(Context context, CoapServer server) {
         super(server);
-        this.context = context;
  
         // Set the link attributes for this resource
         this.getLink().setObservable(Boolean.TRUE);
@@ -49,7 +47,8 @@ public class HRMResource extends AbstractObservableResource {
     
     private void nt() {
         Thread nt = new Thread(new Runnable() {
-            @Override
+            @SuppressWarnings("deprecation")
+			@Override
             public void run() {
                 try {
                     notifyChange(HRM_value.getBytes(), MediaTypes.CT_TEXT_PLAIN, true);
@@ -74,11 +73,6 @@ public class HRMResource extends AbstractObservableResource {
     public void updateHRMValue(int hrm_value) {
        HRM_value = "" + hrm_value;
        nt();
-    }
-
-    private void startHRMReceiver() {
-        // not used
-        ;
     }
 
     public void stopHRMReceiver() {

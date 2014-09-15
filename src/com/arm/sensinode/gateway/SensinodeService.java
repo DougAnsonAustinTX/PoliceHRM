@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 
 
+
 // Resources
 import com.arm.sensinode.gateway.resources.BatteryResource;
 import com.arm.sensinode.gateway.resources.HRMResource;
@@ -103,13 +104,15 @@ public class SensinodeService extends Service {
 	//
 	// BEGIN TUNABLES
 	//
-	public static String DEFAULT_MDS_REST_PORT = "8080";
-	public static String DEFAULT_MDS_IPADDRESS = "192.168.1.220";
-	public static String DEFAULT_MDS_DOMAIN = "domain";
-	public static String DEFAULT_ENDPOINT_NAME = "police-1234";
-	public static String DEFAULT_ENPOINT_TYPE = "policeman HRM";
-	public static String DEFAULT_MODEL_INFO = "police HRM-MDS gateway";
-	public static String DEFAULT_MFG_INFO = "Nordic+ARM mbed";
+	public static String DEFAULT_MDS_REST_PORT 		= "8080";
+	public static int    DEFAULT_MDS_COAP_PORT		= CoapConstants.DEFAULT_PORT;
+	public static String DEFAULT_MDS_IPADDRESS 		= "192.168.1.220";
+	public static String DEFAULT_MDS_DOMAIN 		= "domain";
+	public static String DEFAULT_ENDPOINT_NAME 		= "police-1234";
+	public static String DEFAULT_ENPOINT_TYPE 		= "policeman HRM";
+	public static String DEFAULT_MODEL_INFO 		= "police HRM-MDS gateway";
+	public static String DEFAULT_MFG_INFO 			= "Nordic+ARM mbed";
+	public static String DEFAULT_LOCATION_COORDS    = "37.404064,-121.973136";
 	//
 	// END TUNABLES
 	//
@@ -128,7 +131,7 @@ public class SensinodeService extends Service {
 
     // Connection details
     private String serverAddress = null;
-    private int serverPort = CoapConstants.DEFAULT_PORT;
+    private int serverPort = SensinodeService.DEFAULT_MDS_COAP_PORT;
     private InetSocketAddress MDSAddress;
     private CoapServer server = null;
     private EndPointRegistrator registrator = null;
@@ -225,7 +228,7 @@ public class SensinodeService extends Service {
         preferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
 
         serverAddress = preferences.getString("server_address", SensinodeService.DEFAULT_MDS_IPADDRESS);
-        serverPort = preferences.getInt("server_port", CoapConstants.DEFAULT_PORT);
+        serverPort = preferences.getInt("server_port", SensinodeService.DEFAULT_MDS_COAP_PORT);
         endPointHostName = preferences.getString("endpoint_id", SensinodeService.DEFAULT_ENDPOINT_NAME);
         endPointDomain = preferences.getString("server_domain", SensinodeService.DEFAULT_MDS_DOMAIN);
         SensinodeService.m_sensinode_instance = this;
@@ -522,7 +525,8 @@ public class SensinodeService extends Service {
         }
     }
     
-    private String getLocalIPAddress() {
+    @SuppressWarnings("deprecation")
+	private String getLocalIPAddress() {
       WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
       WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
       int ip = wifiInfo.getIpAddress();
