@@ -1,0 +1,119 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    tools:context="com.arm.sensinode.gateway.NSPConfigActivity"
+    tools:ignore="MergeRootFrame" >
+    
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/switch1"
+        android:checked="false"
+        android:text="@string/service_status"
+        android:layout_marginTop="31dp"
+        android:layout_below="@+id/title"
+        android:layout_marginStart="45dp"
+        android:layout_alignParentStart="true" />
+    
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center_horizontal|top"
+        android:text="@string/nsp_config_info"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#6fb4da" />
+
+    <TextView
+        android:id="@+id/server_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/switch1"
+        android:layout_marginStart="45dp"
+        android:layout_marginTop="50dp"
+        android:text="@string/server_address" />
+
+    <EditText
+        android:id="@+id/server_address_box"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/server_address"
+        android:layout_alignEnd="@+id/title"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="true"
+        android:layout_alignStart="@+id/server_port_box"
+        android:layout_marginEnd="45dp"
+        android:background="@android:drawable/editbox_background"
+        android:inputType="text"
+        android:text="192.168.1.220" />
+
+    <TextView
+        android:id="@+id/server_port"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/server_port"
+        android:layout_below="@+id/server_address"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="45dp"
+        android:layout_marginTop="50dp">
+    </TextView>
+        
+    <EditText
+        android:id="@+id/server_port_box"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/editbox_background"
+        android:layout_alignBottom="@+id/server_port"
+        android:layout_centerHorizontal="true"
+        android:inputType="number" />
+
+    <TextView
+        android:id="@+id/server_domain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/server_domain"
+        android:layout_below="@+id/server_port"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="45dp"
+        android:layout_marginTop="50dp">
+    </TextView>
+
+    <EditText
+        android:id="@+id/server_domain_box"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/editbox_background"
+        android:layout_alignBottom="@+id/server_domain"
+        android:inputType="text"
+        android:layout_alignEnd="@+id/server_address_box"
+        android:layout_alignStart="@+id/server_port_box" />
+
+    <TextView
+        android:id="@+id/endpoint_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/endpoint_id"
+        android:layout_below="@+id/server_domain"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="45dp"
+        android:layout_marginTop="50dp">
+    </TextView>
+
+    <EditText
+        android:id="@+id/endpoint_id_box"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/editbox_background"
+        android:inputType="text"
+        android:layout_alignBottom="@+id/endpoint_id"
+        android:layout_alignStart="@+id/server_domain_box"
+        android:layout_alignEnd="@+id/server_domain_box"
+        android:focusable="false" />
+
+</RelativeLayout>

@@ -21,10 +21,18 @@
         android:minSdkVersion="18"
         android:targetSdkVersion="19" />
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
+    <uses-permission android:name="android.permission.VIBRATE"></uses-permission> 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="no.nordicsemi.android.LOG" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -48,6 +56,17 @@
             android:name="no.nordicsemi.android.nrftoolbox.FeaturesActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask" >
+        </activity>
+        
+        <activity
+            android:name="com.arm.sensinode.gateway.NSPConfigActivity"
+            android:icon="@drawable/mds_config_feature"
+            android:label="@string/nsp_feature_title" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="no.nordicsemi.android.nrftoolbox.LAUNCHER" />
+            </intent-filter>
         </activity>
         
         <activity
@@ -192,6 +211,23 @@
             android:label="@string/hts_feature_title" />
             
         -->
+        
+        <service
+            android:name="com.arm.sensinode.gateway.SensinodeService"
+            android:icon="@drawable/ic_launcher"
+            android:label="@string/service_name" >
+        </service>
+
+        <receiver android:name="com.arm.sensinode.gateway.ScheduleReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED">
+                </action>
+            </intent-filter>
+        </receiver>
+        
+        <receiver android:name="com.arm.sensinode.gateway.StartServiceReceiver">
+        </receiver>
+        
     </application>
 
 </manifest>

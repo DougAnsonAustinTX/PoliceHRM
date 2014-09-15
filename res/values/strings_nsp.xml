@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2013 Nordic Semiconductor. All Rights Reserved.
+  
+  The information contained herein is property of Nordic Semiconductor ASA.
+  Terms and conditions of usage are described in detail in NORDIC SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
+  Licensees are granted free, non-transferable use of the information. NO WARRANTY of ANY KIND is provided. 
+  This heading must NOT be removed from the file.
+-->
+<resources>
+    <string name="nsp_default_name">MDS</string>
+    
+    <string name="nsp_config_info">Select and Bind to mbed Device Server</string>
+    <string name="service_name">mbed Device Server</string>
+    <string name="service_status">Connect to MDS:</string>
+    <string name="server_address">Server address:</string>
+    <string name="server_port">Server port:</string>
+    <string name="server_domain">MDS Domain:</string>
+    <string name="endpoint_id">End-point ID:</string>
+    <string name="switch_on">ON</string>
+    <string name="switch_off">OFF</string>
+    
+    <string name="nsp_feature_title">mbed Device Server Config</string>
+    <string name="nsp_feature_title_long">mbed Device Server Platform</string>
+    <dimen name="nsp_feature_title_long_margin">-152dp</dimen>
+    <string name="nsp_about_text">mbed Device Server Config</string>
+   
+</resources>
