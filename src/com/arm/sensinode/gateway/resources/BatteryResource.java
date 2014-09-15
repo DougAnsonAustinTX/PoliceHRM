@@ -55,7 +55,8 @@ public class BatteryResource extends AbstractObservableResource {
     
     private void nt() {
         Thread nt = new Thread(new Runnable() {
-            @Override
+            @SuppressWarnings("deprecation")
+			@Override
             public void run() {
                 try {
                     notifyChange(current_level.getBytes(), MediaTypes.CT_TEXT_PLAIN, true);
@@ -76,7 +77,8 @@ public class BatteryResource extends AbstractObservableResource {
         ex.sendResponse();
     }
 
-    private void startBatteryReceiver() {
+    @SuppressWarnings("unused")
+	private void startBatteryReceiver() {
         if (!isReceiverRunning()) {
             receiver_enabled = true;
             battery_receiver = new BroadcastReceiver() {
