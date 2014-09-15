@@ -24,7 +24,7 @@ public class BatteryResource extends AbstractObservableResource {
     private final static Logger LOGGER = LoggerFactory.getLogger(BatteryResource.class);
 
     private final Context context;
-    private String current_level = "-1%";
+    private String current_level = "100%";
     private BroadcastReceiver battery_receiver;
     private boolean receiver_enabled = false;
     
