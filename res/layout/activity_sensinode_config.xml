@@ -113,7 +113,6 @@
         android:inputType="text"
         android:layout_alignBottom="@+id/endpoint_id"
         android:layout_alignStart="@+id/server_domain_box"
-        android:layout_alignEnd="@+id/server_domain_box"
-        android:focusable="false" />
+        android:layout_alignEnd="@+id/server_domain_box" />
 
 </RelativeLayout>

@@ -100,22 +100,22 @@ public class NSPConfigActivity extends Activity {
                     if (update_switch_only == false) {
                       if(isChecked && !serviceIsRunning()) {
                           // Start the service when the switch is ON
-                          Toast.makeText(getApplicationContext(), "Enabled the NSP service.", Toast.LENGTH_SHORT).show();
+                          Toast.makeText(getApplicationContext(), "Enabled the MDS service.", Toast.LENGTH_SHORT).show();
                           Intent service = new Intent(getApplicationContext(), SensinodeService.class);
                           service.putExtra("enabled", true);
                           getApplicationContext().startService(service);
                           updateServiceStatus(true);
                       } else if (isChecked && serviceIsRunning()) {
-                        Toast.makeText(getApplicationContext(), "NSP Service Already Running.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "MDS Service Already Running.", Toast.LENGTH_SHORT).show();
                         buttonView.setChecked(true);
                       }
                       else if (!isChecked && !serviceIsRunning()) {
-                        Toast.makeText(getApplicationContext(), "NSP Service Already Shutdown.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "MDS Service Already Shutdown.", Toast.LENGTH_SHORT).show();
                         buttonView.setChecked(false);
                       }
                       else {
                           // Stop the service when the switch is OFF
-                          Toast.makeText(getApplicationContext(), "Disabled the NSP service.", Toast.LENGTH_SHORT).show();
+                          Toast.makeText(getApplicationContext(), "Disabled the MDS service.", Toast.LENGTH_SHORT).show();
                           Intent service = new Intent(getApplicationContext(), SensinodeService.class);
                           service.putExtra("enabled", false);
                           getApplicationContext().startService(service);
@@ -256,6 +256,47 @@ public class NSPConfigActivity extends Activity {
                 }
             }
         });
+        
+        endpoint_id_box = (EditText) findViewById(R.id.endpoint_id_box);
+        endpoint_id_box.setOnEditorActionListener(new TextView.OnEditorActionListener()
+        {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event)
+            {
+                String input;
+                boolean valid = false;
+                if(actionId == EditorInfo.IME_ACTION_DONE)
+                {
+                    input = v.getText().toString();
+                    preferences.edit().putString("endpoint_id", input).commit();
+                    readPreferences(preferences);
+                    valid = validatePreferences();
+                    if (valid) status_switch.setEnabled(true);
+                    else status_switch.setEnabled(false);
+                }
+                return valid;
+            }
+        });
+        endpoint_id_box.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus)
+            {
+                String input;
+                EditText editText;
+
+                if(!hasFocus)
+                {
+                    editText = (EditText) v;
+                    input = editText.getText().toString();
+                    preferences.edit().putString("endpoint_id", input).commit();
+                    readPreferences(preferences);
+                    boolean valid = validatePreferences();
+                    if (valid) status_switch.setEnabled(true);
+                    else status_switch.setEnabled(false);
+                }
+            }
+        });
 
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
@@ -275,21 +316,21 @@ public class NSPConfigActivity extends Activity {
      */
     private boolean validatePreferences() {
         if (server_address == null || server_address.isEmpty()) {
-            server_address_box.setText("192.168.1.220");
+            server_address_box.setText(SensinodeService.DEFAULT_MDS_IPADDRESS);
             return false;
         }
         if (server_port <= 0) {
-            server_port_box.setText("5683");
+            server_port_box.setText(CoapConstants.DEFAULT_PORT);
             return false;
         }
 
         if (server_domain == null || server_domain.isEmpty()) {
-            server_domain_box.setText("domain");
+            server_domain_box.setText(SensinodeService.DEFAULT_MDS_DOMAIN);
             return false;
         }
 
         if (endpoint_id == null || endpoint_id.isEmpty()) {
-          endpoint_id_box.setText("nsp-btn-gw");
+          endpoint_id_box.setText(SensinodeService.DEFAULT_ENDPOINT_NAME);
           return false;
         }
         
@@ -303,10 +344,10 @@ public class NSPConfigActivity extends Activity {
      *          Which preferences to use.
      */
     private void readPreferences(SharedPreferences prefs) {
-        server_address = prefs.getString("server_address", "192.168.1.220");
+        server_address = prefs.getString("server_address", SensinodeService.DEFAULT_MDS_IPADDRESS);
         server_port = prefs.getInt("server_port", CoapConstants.DEFAULT_PORT);
-        server_domain = prefs.getString("server_domain", "domain");
-        endpoint_id = prefs.getString("endpoint_id","nsp-btn-gw");
+        server_domain = prefs.getString("server_domain", SensinodeService.DEFAULT_MDS_DOMAIN);
+        endpoint_id = prefs.getString("endpoint_id",SensinodeService.DEFAULT_ENDPOINT_NAME);
 
         server_address_box = (EditText) findViewById(R.id.server_address_box);
         server_address_box.setText(server_address);

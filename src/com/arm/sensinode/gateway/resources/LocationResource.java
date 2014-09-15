@@ -29,10 +29,8 @@ import java.util.concurrent.TimeUnit;
 
 public class LocationResource extends AbstractObservableResource implements LocationListener {
     private final static Logger LOGGER = LoggerFactory.getLogger(LocationResource.class);
-    // Orig: private String last_location = "36.131249,-115.142334"; 
-    // Las Vegas: private String last_location = "36.132955,-115.147760"; 
-    // Bilboa Spain: private String last_location = "43.263387,-2.923610"; 
-    // Santa Clara CA: private String last_location = "37.404064,-121.973136"; 
+    
+    // Location Resource
     private String last_location = "37.404064,-121.973136"; 
  
     // Minimum update interval (in seconds)

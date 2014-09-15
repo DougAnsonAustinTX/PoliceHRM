@@ -16,6 +16,9 @@ import android.text.format.Formatter;
 import android.util.Base64;
 import android.widget.Toast;
 
+
+
+
 // Resources
 import com.arm.sensinode.gateway.resources.BatteryResource;
 import com.arm.sensinode.gateway.resources.HRMResource;
@@ -76,9 +79,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The SensinodeService class provides the backend for connecting to the Sensinode/NSP instance.
+ * The SensinodeService class provides the backend for connecting to the Sensinode/MDS instance.
  *
- * It makes use of the NSP Java client libraries, adapted for Android use.
+ * It makes use of the MDS Java client libraries, adapted for Android use.
  * Please note that you will need to provide an external Log4J library also,
  * as the client library uses it internally.
  *
@@ -88,22 +91,34 @@ import org.slf4j.LoggerFactory;
  * Uses properties configured from the GUI, with the help of the MainActivity class.
  *
  * @author Dragos Donici <Dragos.Donici@arm.com>
- * @see com.arm.sensinode.gateway.NSPConfigActivity
+ * @see com.arm.sensinode.gateway.MDSConfigActivity
  *
  * @see http://www.slf4j.org/android/
  * @see https://github.com/twwwt/slf4j
  *
  */
 public class SensinodeService extends Service {
-    public static HRMResource m_hrm = null;
-    
-    // HACK for using HTTP to directly set NSP resource changes without waiting on notifyChange()
-    private String nsp_authentication = "app2:secret";
-    private String nsp_resource_url_template = "http://HOST:PORT/DOMAIN/endpoints/ENDPOINT_NAMERESOURCESYNCCACHE";
+	private static SensinodeService m_sensinode_instance = null;
+	
+	//
+	// BEGIN TUNABLES
+	//
+	public static String DEFAULT_MDS_REST_PORT = "8080";
+	public static String DEFAULT_MDS_IPADDRESS = "192.168.1.220";
+	public static String DEFAULT_MDS_DOMAIN = "domain";
+	public static String DEFAULT_ENDPOINT_NAME = "police-1234";
+	public static String DEFAULT_ENPOINT_TYPE = "policeman HRM";
+	//
+	// END TUNABLES
+	//
+	
+    // HACK for using HTTP to directly set MDS resource changes without waiting on notifyChange()
+    private String MDS_authentication = "app2:secret";
+    private String MDS_resource_url_template = "http://HOST:PORT/DOMAIN/endpoints/ENDPOINT_NAMERESOURCESYNCCACHE";
     
     private final IBinder mBinder = new ServiceBinder();
 
-    // Thread used to start the NSP server, network operations can't run on the main UI thread on Android
+    // Thread used to start the MDS server, network operations can't run on the main UI thread on Android
     private Thread init_thread = null;
 
     // Get a logging handler
@@ -112,12 +127,12 @@ public class SensinodeService extends Service {
     // Connection details
     private String serverAddress = null;
     private int serverPort = CoapConstants.DEFAULT_PORT;
-    private InetSocketAddress nspAddress;
+    private InetSocketAddress MDSAddress;
     private CoapServer server = null;
     private EndPointRegistrator registrator = null;
-    private String endPointHostName = "nsp-btn-gw";
-    private String endPointDomain = "domain";
-    private final String endPointType = "button gateway";
+    private String endPointHostName = SensinodeService.DEFAULT_ENDPOINT_NAME;
+    private String endPointDomain = SensinodeService.DEFAULT_MDS_DOMAIN;
+    private final String endPointType = SensinodeService.DEFAULT_ENPOINT_TYPE;
 
     // Resources
     private BatteryResource battery_resource;
@@ -131,6 +146,71 @@ public class SensinodeService extends Service {
 
     // Used to display Toasts from a non-UI thread
     private Handler handler;
+    
+    //
+    // BTLE-MDS BINDING: We must have access to the resources that we alter when BTLE events/values are received
+    //
+    public static SensinodeService getInstance() { return SensinodeService.m_sensinode_instance; }
+    public HRMResource getMDSHRMResource() { return this.hrm_resource; }
+    public BatteryResource getMDSBatteryResource() { return this.battery_resource; }
+    
+    //
+    // BEGIN RESOURCE SECTION
+    //
+    // Create our MDS Resources: Create some sample resources that define a Policeman+HRM
+    //
+    private void createMDSResources() {
+    	// IP Address
+        SimpleCoapResource ipaddr = new SimpleCoapResource(this.getLocalIPAddress(), "", 0);
+        ipaddr.getLink().setInterfaceDescription("ns:v6addr");
+        server.addRequestHandler("/nw/ipaddr", ipaddr);
+        
+        // MAC Address
+        SimpleCoapResource macaddr = new SimpleCoapResource(this.getLocalMACAddress(), "", 0);
+        macaddr.getLink().setInterfaceDescription("ns:macaddr");
+        server.addRequestHandler("/nw/macaddr", macaddr);
+        
+        // GPS Fix
+        SimpleCoapResource gpsfix = new SimpleCoapResource("1", "", 0);
+        gpsfix.getLink().setInterfaceDescription("ns:gpsfix");
+        server.addRequestHandler("/gps/fix", gpsfix);
+        
+        // GPS Initialized
+        SimpleCoapResource gpsint = new SimpleCoapResource("60", "ucum:s", 0);
+        gpsint.getLink().setInterfaceDescription("ns:gpsint");
+        server.addRequestHandler("/gps/int", gpsfix);
+        
+        // GPS lock resource
+        location_resource = new LocationResource(getApplicationContext(), server);
+        server.addRequestHandler("/gps/loc", location_resource);
+        
+        // Location Resource
+        SimpleCoapResource location = new SimpleCoapResource("Santa Clara CA", "", 0);
+        location.getLink().setInterfaceDescription("ns:location");
+        server.addRequestHandler("/dev/location", location);
+
+        // Add Manufacturer resource
+        manufacturer_resource = new ManufacturerResource();
+        server.addRequestHandler("/dev/mfg", manufacturer_resource);
+
+        // Add Model resource
+        model_resource = new ModelResource();
+        server.addRequestHandler("/dev/mdl", model_resource);
+
+        // Add battery info resource
+        battery_resource = new BatteryResource(getApplicationContext(), server);
+        battery_resource.setService(this);
+        server.addRequestHandler(BatteryResource.BATTERY_RESOURCE_NAME, battery_resource);
+        
+        // Add HRM info resource
+        hrm_resource = new HRMResource(getApplicationContext(), server);
+        hrm_resource.setService(this);
+        server.addRequestHandler(HRMResource.HRM_RESOURCE_NAME, hrm_resource);
+    }
+    
+    //
+    // END RESOURCE SECTION
+    //
 
     /**
      * Initialize the handler and the preferences when the service is created.
@@ -142,17 +222,18 @@ public class SensinodeService extends Service {
         handler = new Handler(getApplicationContext().getMainLooper());
         preferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
 
-        serverAddress = preferences.getString("server_address", "192.168.1.220");
+        serverAddress = preferences.getString("server_address", SensinodeService.DEFAULT_MDS_IPADDRESS);
         serverPort = preferences.getInt("server_port", CoapConstants.DEFAULT_PORT);
-        endPointHostName = preferences.getString("endpoint_id", "nsp-btn-gw");
-        endPointDomain = preferences.getString("server_domain", "domain");
+        endPointHostName = preferences.getString("endpoint_id", SensinodeService.DEFAULT_ENDPOINT_NAME);
+        endPointDomain = preferences.getString("server_domain", SensinodeService.DEFAULT_MDS_DOMAIN);
+        SensinodeService.m_sensinode_instance = this;
     }
 
     /**
      * This is the entry-point for the service.
      *
      * It will start the service in the foreground (to prevent Android from killing it),
-     * as well as initialize the NSP server thread.
+     * as well as initialize the MDS server thread.
      *
      * It uses a boolean intent extra named "enabled", which holds true or false,
      * whether to start the service or stop it.
@@ -172,7 +253,7 @@ public class SensinodeService extends Service {
 
         // Create the notification for the foreground service
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        builder.setTicker("Started NSP service.").setContentTitle("NSP").setContentText("Service is running.")
+        builder.setTicker("Started MDS service.").setContentTitle("MDS").setContentText("MDS Service is running.")
                 .setWhen(System.currentTimeMillis()).setAutoCancel(false)
                 .setOngoing(true).setPriority(Notification.PRIORITY_HIGH)
                 .setContentIntent(pending_intent);
@@ -247,7 +328,7 @@ public class SensinodeService extends Service {
 
     private void stopThread() {
         if (preferences.getBoolean("service_running", false)) {
-            LOGGER.info("Stopping NSP thread");
+            LOGGER.info("Stopping MDS thread");
             if (init_thread != null) {
                 init_thread.interrupt();
                 // Wait until the thread exits
@@ -258,7 +339,7 @@ public class SensinodeService extends Service {
                     ex.printStackTrace();
                 }
 
-                LOGGER.info("NSP Thread stopped");
+                LOGGER.info("MDS Thread stopped");
                 init_thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -274,7 +355,7 @@ public class SensinodeService extends Service {
     private void init() {
         try {
             URI uri = URI.create("coap://" + serverAddress);
-            nspAddress = new InetSocketAddress(uri.getHost(), CoapConstants.DEFAULT_PORT);
+            MDSAddress = new InetSocketAddress(uri.getHost(), CoapConstants.DEFAULT_PORT);
             start();
             preferences.edit().putBoolean("service_running", true).apply();
         }
@@ -289,16 +370,16 @@ public class SensinodeService extends Service {
     
     // Create the Endpoint Resource URL
     public String buildResourceURL(String endpoint,String resource) {
-    	String url = this.nsp_resource_url_template
+    	String url = this.MDS_resource_url_template
     					.replace("HOST", serverAddress)
-    					.replace("PORT", "8080")
-    					.replace("DOMAIN", "domain")
+    					.replace("PORT", SensinodeService.DEFAULT_MDS_REST_PORT)
+    					.replace("DOMAIN", endPointDomain)
     					.replace("ENDPOINT_NAME",endpoint)
     					.replace("RESOURCE", resource)
     					.replace("SYNC","")
     					.replace("CACHE","");
     	
-    	LOGGER.debug("NSP Resource URL: " + url);
+    	LOGGER.debug("MDS Resource URL: " + url);
     	return url;
     }
     
@@ -316,7 +397,7 @@ public class SensinodeService extends Service {
 	    	StringEntity input = new StringEntity(value);
 	    	input.setContentType("text/plain");
 	    	
-	    	putRequest.setHeader("Authorization", "Basic " + Base64.encodeToString(this.nsp_authentication.getBytes(), Base64.NO_WRAP));
+	    	putRequest.setHeader("Authorization", "Basic " + Base64.encodeToString(this.MDS_authentication.getBytes(), Base64.NO_WRAP));
 	
 	    	putRequest.setEntity(input);
 	    	HttpResponse response = httpClient.execute(putRequest);
@@ -345,7 +426,7 @@ public class SensinodeService extends Service {
 	    	URL url = new URL(urlstr);
 	    	HttpGet getRequest = new HttpGet(url.toURI());
 	    	
-	    	getRequest.setHeader("Authorization", "Basic " + Base64.encodeToString(this.nsp_authentication.getBytes(), Base64.NO_WRAP));
+	    	getRequest.setHeader("Authorization", "Basic " + Base64.encodeToString(this.MDS_authentication.getBytes(), Base64.NO_WRAP));
 	
 	    	HttpResponse response = httpClient.execute(getRequest);
 	    	
@@ -378,72 +459,33 @@ public class SensinodeService extends Service {
             }
         });
     }
-
-    private void start() {
-        // Create the server
+    
+    
+    
+    // Create the MDS Server Binding
+    private boolean createMDSServerBinding() {
+    	// Create the server
         try {
             server = CoapServer.create(serverPort);
             server.setBlockSize(BlockSize.S_1024);
             server.start();
         } catch (IOException ex) {
-            LOGGER.error("Unable to start NSP server: " + ex.getMessage());
-            showToast("Unable to start NSP server, please verify logcat.", Toast.LENGTH_LONG);
-            return;
+            LOGGER.error("Unable to start MDS server: " + ex.getMessage());
+            showToast("Unable to start MDS server, please verify logcat.", Toast.LENGTH_LONG);
+            return false;
         }
-        
-        // IP Address
-        SimpleCoapResource ipaddr = new SimpleCoapResource(this.getLocalIPAddress(), "", 0);
-        ipaddr.getLink().setInterfaceDescription("ns:v6addr");
-        server.addRequestHandler("/nw/ipaddr", ipaddr);
-        
-        // MAC Address
-        SimpleCoapResource macaddr = new SimpleCoapResource(this.getLocalMACAddress(), "", 0);
-        macaddr.getLink().setInterfaceDescription("ns:macaddr");
-        server.addRequestHandler("/nw/macaddr", macaddr);
-        
-        // GPS Fix
-        SimpleCoapResource gpsfix = new SimpleCoapResource("1", "", 0);
-        gpsfix.getLink().setInterfaceDescription("ns:gpsfix");
-        server.addRequestHandler("/gps/fix", gpsfix);
-        
-        // GPS Initialized
-        SimpleCoapResource gpsint = new SimpleCoapResource("60", "ucum:s", 0);
-        gpsint.getLink().setInterfaceDescription("ns:gpsint");
-        server.addRequestHandler("/gps/int", gpsfix);
-        
-        // Location Resource
-        SimpleCoapResource location = new SimpleCoapResource("Santa Clara CA", "", 0);
-        location.getLink().setInterfaceDescription("ns:location");
-        server.addRequestHandler("/dev/location", location);
-
-        // Add Manufacturer resource
-        manufacturer_resource = new ManufacturerResource();
-        server.addRequestHandler("/dev/mfg", manufacturer_resource);
-
-        // Add Model resource
-        model_resource = new ModelResource();
-        server.addRequestHandler("/dev/mdl", model_resource);
-
-        // Add battery info resource
-        battery_resource = new BatteryResource(getApplicationContext(), server);
-        server.addRequestHandler("/dev/bat", battery_resource);
-        
-        // Add HRM info resource
-        SensinodeService.m_hrm = new HRMResource(getApplicationContext(), server);
-        SensinodeService.m_hrm.setService(this);
-        server.addRequestHandler("/lt/0/on", SensinodeService.m_hrm);
-
-        // Add Location resource
-        location_resource = new LocationResource(getApplicationContext(), server);
-        server.addRequestHandler("/gps/loc", location_resource);
-        
-        // Add the handler for /.well-known/core
+        return true;
+    }
+    
+    // Register with MDS
+    private void registerWithMDS() {
+    	// Add the handler for /.well-known/core
         server.addRequestHandler(CoapConstants.WELL_KNOWN_CORE, server.getResourceLinkResource());
-
-        // Register with NSP end-point
-        if (nspAddress != null) {
-        	LOGGER.info("Registering Endpoint: NSP: " + nspAddress + " Endpoint hostName: " + endPointHostName + " Domain: " + endPointDomain);
-            registrator = new EndPointRegistrator(server, nspAddress, endPointHostName);
+        
+    	// Register with MDS end-point
+        if (MDSAddress != null) {
+        	LOGGER.info("Registering Endpoint: MDS: " + MDSAddress + " Endpoint hostName: " + endPointHostName + " Domain: " + endPointDomain);
+            registrator = new EndPointRegistrator(server, MDSAddress, endPointHostName);
             if (endPointDomain != null) {
                 registrator.setDomain(endPointDomain);
                 registrator.setType(endPointType);
@@ -465,6 +507,18 @@ public class SensinodeService extends Service {
             });
         }
     }
+
+    // Start MDS Service
+    private void start() {
+    	// Create MDS Server Binding 
+        if (this.createMDSServerBinding()) {
+        	// create MDS Resources
+        	this.createMDSResources();
+        	
+        	// Register resources with MDS
+        	this.registerWithMDS();
+        }
+    }
     
     private String getLocalIPAddress() {
       WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
@@ -482,7 +536,7 @@ public class SensinodeService extends Service {
     private void stop() {
         if (registrator != null && registrator.getState() == EndPointRegistrator.RegistrationState.REGISTERED) {
             // Unregister
-            LOGGER.debug("Removing NSP registration");
+            LOGGER.debug("Removing MDS registration");
             SyncCallback<RegistrationState> callback = new SyncCallback<RegistrationState>();
             registrator.unregister(callback);
 

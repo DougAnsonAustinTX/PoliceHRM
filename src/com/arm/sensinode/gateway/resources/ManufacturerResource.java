@@ -15,7 +15,6 @@ public class ManufacturerResource extends CoapResource {
     private final static Logger LOGGER = LoggerFactory.getLogger(ModelResource.class);
 
     public ManufacturerResource() {
-
         // Set the link attributes for this resource
         //this.getLink().setResourceType("ucum:s");
         this.getLink().setObservable(Boolean.TRUE);

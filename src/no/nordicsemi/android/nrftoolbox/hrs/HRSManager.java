@@ -11,6 +11,8 @@ package no.nordicsemi.android.nrftoolbox.hrs;
 import java.util.List;
 import java.util.UUID;
 
+import com.arm.sensinode.gateway.SensinodeService;
+
 import no.nordicsemi.android.nrftoolbox.R;
 import no.nordicsemi.android.nrftoolbox.profile.BleManager;
 import no.nordicsemi.android.nrftoolbox.utility.DebugLogger;
@@ -173,6 +175,9 @@ public class HRSManager implements BleManager<HRSManagerCallbacks> {
 				}
 				//This will send callback to HRSActicity when new HR value is received from HR device
 				mCallbacks.onHRValueReceived(hrValue);
+				
+				// Also update MDS with the latest HR value
+				if (SensinodeService.getInstance() != null) SensinodeService.getInstance().getMDSHRMResource().updateHRMValue(hrValue);
 			}
 		}
 

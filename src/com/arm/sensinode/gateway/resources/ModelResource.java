@@ -1,7 +1,6 @@
 package com.arm.sensinode.gateway.resources;
 
 import android.content.Context;
-import android.os.Build;
 
 import com.sensinode.coap.MediaTypes;
 import com.sensinode.coap.Code;
@@ -17,7 +16,6 @@ public class ModelResource extends CoapResource {
     Context context;
 
     public ModelResource() {
-
         // Set the link attributes for this resource
         //this.getLink().setResourceType("ucum:s");
         this.getLink().setObservable(Boolean.TRUE);
