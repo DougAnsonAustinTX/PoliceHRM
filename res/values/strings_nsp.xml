@@ -14,7 +14,8 @@
     <string name="service_name">mbed Device Server</string>
     <string name="service_status">Connect to MDS:</string>
     <string name="server_address">Server address:</string>
-    <string name="server_port">Server port:</string>
+    <string name="coap_port">CoAP port:</string>
+    <string name="rest_port">REST port:</string>
     <string name="server_domain">MDS Domain:</string>
     <string name="endpoint_id">End-point ID:</string>
     <string name="switch_on">ON</string>

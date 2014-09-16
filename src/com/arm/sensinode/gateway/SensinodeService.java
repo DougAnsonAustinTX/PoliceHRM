@@ -104,7 +104,7 @@ public class SensinodeService extends Service {
 	//
 	// BEGIN TUNABLES
 	//
-	public static String DEFAULT_MDS_REST_PORT 		= "8080";
+	public static int    DEFAULT_MDS_REST_PORT 		= 8080;
 	public static int    DEFAULT_MDS_COAP_PORT		= CoapConstants.DEFAULT_PORT;
 	public static String DEFAULT_MDS_IPADDRESS 		= "192.168.1.220";
 	public static String DEFAULT_MDS_DOMAIN 		= "domain";
@@ -113,6 +113,7 @@ public class SensinodeService extends Service {
 	public static String DEFAULT_MODEL_INFO 		= "police HRM-MDS gateway";
 	public static String DEFAULT_MFG_INFO 			= "Nordic+ARM mbed";
 	public static String DEFAULT_LOCATION_COORDS    = "37.404064,-121.973136";
+	public static int 	 DEFAULT_ENDPOINT_LIFETIME  = 1200;
 	//
 	// END TUNABLES
 	//
@@ -131,7 +132,8 @@ public class SensinodeService extends Service {
 
     // Connection details
     private String serverAddress = null;
-    private int serverPort = SensinodeService.DEFAULT_MDS_COAP_PORT;
+    private int coapPort = SensinodeService.DEFAULT_MDS_COAP_PORT;
+    private int restPort = SensinodeService.DEFAULT_MDS_REST_PORT;
     private InetSocketAddress MDSAddress;
     private CoapServer server = null;
     private EndPointRegistrator registrator = null;
@@ -228,7 +230,8 @@ public class SensinodeService extends Service {
         preferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
 
         serverAddress = preferences.getString("server_address", SensinodeService.DEFAULT_MDS_IPADDRESS);
-        serverPort = preferences.getInt("server_port", SensinodeService.DEFAULT_MDS_COAP_PORT);
+        coapPort = preferences.getInt("coap_port", SensinodeService.DEFAULT_MDS_COAP_PORT);
+        restPort = preferences.getInt("rest_port", SensinodeService.DEFAULT_MDS_REST_PORT);
         endPointHostName = preferences.getString("endpoint_id", SensinodeService.DEFAULT_ENDPOINT_NAME);
         endPointDomain = preferences.getString("server_domain", SensinodeService.DEFAULT_MDS_DOMAIN);
         SensinodeService.m_sensinode_instance = this;
@@ -360,7 +363,7 @@ public class SensinodeService extends Service {
     private void init() {
         try {
             URI uri = URI.create("coap://" + serverAddress);
-            MDSAddress = new InetSocketAddress(uri.getHost(), CoapConstants.DEFAULT_PORT);
+            MDSAddress = new InetSocketAddress(uri.getHost(), coapPort);
             start();
             preferences.edit().putBoolean("service_running", true).apply();
         }
@@ -377,7 +380,7 @@ public class SensinodeService extends Service {
     public String buildResourceURL(String endpoint,String resource) {
     	String url = this.MDS_resource_url_template
     					.replace("HOST", serverAddress)
-    					.replace("PORT", SensinodeService.DEFAULT_MDS_REST_PORT)
+    					.replace("PORT", "" + restPort)
     					.replace("DOMAIN", endPointDomain)
     					.replace("ENDPOINT_NAME",endpoint)
     					.replace("RESOURCE", resource)
@@ -427,14 +430,12 @@ public class SensinodeService extends Service {
 	    try {
 	    	// use Apache HTTP
 	    	DefaultHttpClient httpClient = new DefaultHttpClient();
-	    	
 	    	URL url = new URL(urlstr);
 	    	HttpGet getRequest = new HttpGet(url.toURI());
-	    	
 	    	getRequest.setHeader("Authorization", "Basic " + Base64.encodeToString(this.MDS_authentication.getBytes(), Base64.NO_WRAP));
-	
 	    	HttpResponse response = httpClient.execute(getRequest);
 	    	
+	    	// DEBUG
 	    	LOGGER.debug("putResourceValue response code: " + response.getStatusLine().getStatusCode());
 
 	    	// Get the response
@@ -471,7 +472,7 @@ public class SensinodeService extends Service {
     private boolean createMDSServerBinding() {
     	// Create the server
         try {
-            server = CoapServer.create(serverPort);
+            server = CoapServer.create(coapPort);
             server.setBlockSize(BlockSize.S_1024);
             server.start();
         } catch (IOException ex) {
@@ -496,12 +497,13 @@ public class SensinodeService extends Service {
                 registrator.setType(endPointType);
             }
             
-            registrator.setLifeTime(1200);
+            registrator.setLifeTime(SensinodeService.DEFAULT_ENDPOINT_LIFETIME);
             registrator.register(new Callback<EndPointRegistrator.RegistrationState>() {
 
                 @Override
                 public void callException(Exception excptn) {
                     LOGGER.warn("Could not register: " + excptn);
+                    LOGGER.info("Target Endpoint: MDS: " + MDSAddress + " Endpoint hostName: " + endPointHostName + " Domain: " + endPointDomain);
                     showToast("Unable to register with Sensinode, please verify logcat.", Toast.LENGTH_LONG);
                 }
 

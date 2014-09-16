@@ -39,7 +39,8 @@ public class NSPConfigActivity extends Activity {
 
     // Connection properties
     private String server_address = null;
-    private int server_port = -1;
+    private int coap_port = -1;
+    private int rest_port = -1;
     private String endpoint_id = null;
     private String server_domain = null;
     
@@ -47,7 +48,8 @@ public class NSPConfigActivity extends Activity {
 
     // EditText boxes on the GUI for the connection properties
     private EditText server_address_box;
-    private EditText server_port_box;
+    private EditText coap_port_box;
+    private EditText rest_port_box;
     private EditText server_domain_box;
     private EditText endpoint_id_box;
 
@@ -168,8 +170,8 @@ public class NSPConfigActivity extends Activity {
             }
         });
 
-        server_port_box = (EditText) findViewById(R.id.server_port_box);
-        server_port_box.setOnEditorActionListener(new TextView.OnEditorActionListener()
+        coap_port_box = (EditText) findViewById(R.id.coap_port_box);
+        coap_port_box.setOnEditorActionListener(new TextView.OnEditorActionListener()
         {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event)
@@ -179,7 +181,7 @@ public class NSPConfigActivity extends Activity {
                 if(actionId == EditorInfo.IME_ACTION_DONE)
                 {
                     input= v.getText().toString();
-                    preferences.edit().putInt("server_port", Integer.parseInt(input)).commit();
+                    preferences.edit().putInt("coap_port", Integer.parseInt(input)).commit();
                     readPreferences(preferences);
                     valid = validatePreferences();
                     if (valid) status_switch.setEnabled(true);
@@ -188,7 +190,7 @@ public class NSPConfigActivity extends Activity {
                 return valid;
             }
         });
-        server_port_box.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        coap_port_box.setOnFocusChangeListener(new View.OnFocusChangeListener()
         {
             @Override
             public void onFocusChange(View v, boolean hasFocus)
@@ -205,7 +207,7 @@ public class NSPConfigActivity extends Activity {
                 		port = Integer.parseInt(input);
                 	}
                 	catch(Exception ex) { ; }
-                    preferences.edit().putInt("server_port", port).commit();
+                    preferences.edit().putInt("coap_port", port).commit();
                     readPreferences(preferences);
                     boolean valid = validatePreferences();
                     if (valid) status_switch.setEnabled(true);
@@ -214,6 +216,52 @@ public class NSPConfigActivity extends Activity {
             }
         });
 
+        rest_port_box = (EditText) findViewById(R.id.rest_port_box);
+        rest_port_box.setOnEditorActionListener(new TextView.OnEditorActionListener()
+        {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event)
+            {
+                String input;
+                boolean valid = false;
+                if(actionId == EditorInfo.IME_ACTION_DONE)
+                {
+                    input= v.getText().toString();
+                    preferences.edit().putInt("rest_port", Integer.parseInt(input)).commit();
+                    readPreferences(preferences);
+                    valid = validatePreferences();
+                    if (valid) status_switch.setEnabled(true);
+                    else status_switch.setEnabled(false);
+                }
+                return valid;
+            }
+        });
+        rest_port_box.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus)
+            {
+                String input;
+                EditText editText;
+
+                if(!hasFocus)
+                {
+                	editText= (EditText) v;
+                    input = editText.getText().toString();
+                    int port = SensinodeService.DEFAULT_MDS_REST_PORT;
+                	try {
+                		port = Integer.parseInt(input);
+                	}
+                	catch(Exception ex) { ; }
+                    preferences.edit().putInt("rest_port", port).commit();
+                    readPreferences(preferences);
+                    boolean valid = validatePreferences();
+                    if (valid) status_switch.setEnabled(true);
+                    else status_switch.setEnabled(false);
+                }
+            }
+        });
+        
         server_domain_box = (EditText) findViewById(R.id.server_domain_box);
         server_domain_box.setOnEditorActionListener(new TextView.OnEditorActionListener()
         {
@@ -317,8 +365,14 @@ public class NSPConfigActivity extends Activity {
             server_address_box.setText(SensinodeService.DEFAULT_MDS_IPADDRESS);
             return false;
         }
-        if (server_port <= 0) {
-            server_port_box.setText(SensinodeService.DEFAULT_MDS_COAP_PORT);
+        
+        if (coap_port <= 0) {
+            coap_port_box.setText(SensinodeService.DEFAULT_MDS_COAP_PORT);
+            return false;
+        }
+        
+        if (rest_port <= 0) {
+            rest_port_box.setText(SensinodeService.DEFAULT_MDS_REST_PORT);
             return false;
         }
 
@@ -343,16 +397,20 @@ public class NSPConfigActivity extends Activity {
      */
     private void readPreferences(SharedPreferences prefs) {
         server_address = prefs.getString("server_address", SensinodeService.DEFAULT_MDS_IPADDRESS);
-        server_port = prefs.getInt("server_port", SensinodeService.DEFAULT_MDS_COAP_PORT);
+        coap_port = prefs.getInt("coap_port", SensinodeService.DEFAULT_MDS_COAP_PORT);
+        rest_port = prefs.getInt("rest_port", SensinodeService.DEFAULT_MDS_REST_PORT);
         server_domain = prefs.getString("server_domain", SensinodeService.DEFAULT_MDS_DOMAIN);
         endpoint_id = prefs.getString("endpoint_id",SensinodeService.DEFAULT_ENDPOINT_NAME);
 
         server_address_box = (EditText) findViewById(R.id.server_address_box);
         server_address_box.setText(server_address);
 
-        server_port_box = (EditText) findViewById(R.id.server_port_box);
-        server_port_box.setText(String.valueOf(server_port));
+        coap_port_box = (EditText) findViewById(R.id.coap_port_box);
+        coap_port_box.setText(String.valueOf(coap_port));
 
+        rest_port_box = (EditText) findViewById(R.id.rest_port_box);
+        rest_port_box.setText(String.valueOf(rest_port));
+        
         server_domain_box = (EditText) findViewById(R.id.server_domain_box);
         server_domain_box.setText(server_domain);
 
@@ -364,7 +422,8 @@ public class NSPConfigActivity extends Activity {
     private void savePreferences(SharedPreferences prefs) {
       Editor editor = prefs.edit();
       if (server_address != null && server_address.isEmpty() == false) editor.putString("server_address", server_address);
-      if (server_port > 0) editor.putInt("server_port",server_port);
+      if (coap_port > 0) editor.putInt("coap_port",coap_port);
+      if (rest_port > 0) editor.putInt("rest_port",rest_port);
       if (server_domain != null && server_domain.isEmpty() == false) editor.putString("server_domain", server_domain);
       if (endpoint_id != null && endpoint_id.isEmpty() == false) editor.putString("endpoint_id", endpoint_id);
       editor.commit();

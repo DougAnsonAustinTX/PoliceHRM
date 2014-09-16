@@ -14,7 +14,7 @@
         android:text="@string/service_status"
         android:layout_marginTop="31dp"
         android:layout_below="@+id/title"
-        android:layout_marginStart="45dp"
+        android:layout_marginStart="155dp"
         android:layout_alignParentStart="true" />
     
     <TextView
@@ -35,8 +35,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/switch1"
-        android:layout_marginStart="45dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginStart="155dp"
+        android:layout_marginTop="20dp"
         android:text="@string/server_address" />
 
     <EditText
@@ -48,7 +48,7 @@
         android:layout_alignParentLeft="false"
         android:layout_alignParentRight="true"
         android:layout_alignStart="@+id/coap_port_box"
-        android:layout_marginEnd="45dp"
+        android:layout_marginEnd="155dp"
         android:background="@android:drawable/editbox_background"
         android:inputType="text"
         android:text="192.168.1.220" />
@@ -60,8 +60,8 @@
         android:text="@string/coap_port"
         android:layout_below="@+id/server_address"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="45dp"
-        android:layout_marginTop="50dp">
+        android:layout_marginStart="155dp"
+        android:layout_marginTop="20dp">
     </TextView>
         
     <EditText
@@ -80,8 +80,8 @@
         android:text="@string/rest_port"
         android:layout_below="@+id/coap_port"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="45dp"
-        android:layout_marginTop="50dp">
+        android:layout_marginStart="155dp"
+        android:layout_marginTop="20dp">
     </TextView>
         
     <EditText
@@ -100,8 +100,8 @@
         android:text="@string/server_domain"
         android:layout_below="@+id/rest_port"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="45dp"
-        android:layout_marginTop="50dp">
+        android:layout_marginStart="155dp"
+        android:layout_marginTop="20dp">
     </TextView>
 
     <EditText
@@ -121,8 +121,8 @@
         android:text="@string/endpoint_id"
         android:layout_below="@+id/server_domain"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="45dp"
-        android:layout_marginTop="50dp">
+        android:layout_marginStart="155dp"
+        android:layout_marginTop="20dp">
     </TextView>
 
     <EditText
