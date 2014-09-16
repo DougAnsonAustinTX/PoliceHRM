@@ -16,6 +16,6 @@
         android:layout_height="wrap_content"
         android:drawableBottom="@drawable/zip"
         android:padding="8dp"
-        android:text="@string/dfu_zip_info_text" />
+        android:text="" />
 
 </ScrollView>

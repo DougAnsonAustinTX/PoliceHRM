@@ -11,26 +11,26 @@ public final class R {
 		public static final int stat_dfu = 0x7f02004e;
 	}
 	public static final class string {
-		public static final int dfu_status_aborted = 0x7f060029;
-		public static final int dfu_status_aborted_msg = 0x7f060032;
-		public static final int dfu_status_aborting = 0x7f06002a;
-		public static final int dfu_status_completed = 0x7f060028;
-		public static final int dfu_status_completed_msg = 0x7f060031;
-		public static final int dfu_status_connecting = 0x7f060022;
-		public static final int dfu_status_connecting_msg = 0x7f06002c;
-		public static final int dfu_status_disconnecting = 0x7f060027;
-		public static final int dfu_status_disconnecting_msg = 0x7f060033;
-		public static final int dfu_status_error = 0x7f06002b;
-		public static final int dfu_status_error_msg = 0x7f060034;
-		public static final int dfu_status_initializing = 0x7f060021;
-		public static final int dfu_status_starting = 0x7f060023;
-		public static final int dfu_status_starting_msg = 0x7f06002d;
-		public static final int dfu_status_uploading = 0x7f060024;
-		public static final int dfu_status_uploading_components_msg = 0x7f06002e;
-		public static final int dfu_status_uploading_msg = 0x7f06002f;
-		public static final int dfu_status_uploading_part = 0x7f060025;
-		public static final int dfu_status_validating = 0x7f060026;
-		public static final int dfu_status_validating_msg = 0x7f060030;
-		public static final int dfu_unknown_name = 0x7f060020;
+		public static final int dfu_status_aborted = 0x7f050009;
+		public static final int dfu_status_aborted_msg = 0x7f050012;
+		public static final int dfu_status_aborting = 0x7f05000a;
+		public static final int dfu_status_completed = 0x7f050008;
+		public static final int dfu_status_completed_msg = 0x7f050011;
+		public static final int dfu_status_connecting = 0x7f050002;
+		public static final int dfu_status_connecting_msg = 0x7f05000c;
+		public static final int dfu_status_disconnecting = 0x7f050007;
+		public static final int dfu_status_disconnecting_msg = 0x7f050013;
+		public static final int dfu_status_error = 0x7f05000b;
+		public static final int dfu_status_error_msg = 0x7f050014;
+		public static final int dfu_status_initializing = 0x7f050001;
+		public static final int dfu_status_starting = 0x7f050003;
+		public static final int dfu_status_starting_msg = 0x7f05000d;
+		public static final int dfu_status_uploading = 0x7f050004;
+		public static final int dfu_status_uploading_components_msg = 0x7f05000e;
+		public static final int dfu_status_uploading_msg = 0x7f05000f;
+		public static final int dfu_status_uploading_part = 0x7f050005;
+		public static final int dfu_status_validating = 0x7f050006;
+		public static final int dfu_status_validating_msg = 0x7f050010;
+		public static final int dfu_unknown_name = 0x7f050000;
 	}
 }

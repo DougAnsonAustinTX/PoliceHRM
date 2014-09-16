@@ -12,7 +12,7 @@
         android:id="@+id/switch1"
         android:checked="false"
         android:text="@string/service_status"
-        android:layout_marginTop="31dp"
+        android:layout_marginTop="10dp"
         android:layout_below="@+id/title"
         android:layout_marginStart="155dp"
         android:layout_alignParentStart="true" />
