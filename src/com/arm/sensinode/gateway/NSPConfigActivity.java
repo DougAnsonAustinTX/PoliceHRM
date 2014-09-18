@@ -382,7 +382,7 @@ public class NSPConfigActivity extends Activity {
         }
 
         if (endpoint_id == null || endpoint_id.isEmpty()) {
-          endpoint_id_box.setText(SensinodeService.DEFAULT_ENDPOINT_NAME);
+          endpoint_id_box.setText(SensinodeService.getInstance().getLocalIDFromMACAddress(SensinodeService.DEFAULT_ENDPOINT_NAME));
           return false;
         }
         
@@ -400,7 +400,7 @@ public class NSPConfigActivity extends Activity {
         coap_port = prefs.getInt("coap_port", SensinodeService.DEFAULT_MDS_COAP_PORT);
         rest_port = prefs.getInt("rest_port", SensinodeService.DEFAULT_MDS_REST_PORT);
         server_domain = prefs.getString("server_domain", SensinodeService.DEFAULT_MDS_DOMAIN);
-        endpoint_id = prefs.getString("endpoint_id",SensinodeService.DEFAULT_ENDPOINT_NAME);
+        endpoint_id = prefs.getString("endpoint_id",SensinodeService.getInstance().getLocalIDFromMACAddress(SensinodeService.DEFAULT_ENDPOINT_NAME));
 
         server_address_box = (EditText) findViewById(R.id.server_address_box);
         server_address_box.setText(server_address);

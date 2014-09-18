@@ -104,16 +104,19 @@ public class SensinodeService extends Service {
 	//
 	// BEGIN TUNABLES
 	//
-	public static int    DEFAULT_MDS_REST_PORT 		= 8080;
-	public static int    DEFAULT_MDS_COAP_PORT		= CoapConstants.DEFAULT_PORT;
-	public static String DEFAULT_MDS_IPADDRESS 		= "192.168.1.220";
-	public static String DEFAULT_MDS_DOMAIN 		= "domain";
-	public static String DEFAULT_ENDPOINT_NAME 		= "police-1234";
-	public static String DEFAULT_ENPOINT_TYPE 		= "policeman HRM";
-	public static String DEFAULT_MODEL_INFO 		= "police HRM-MDS gateway";
-	public static String DEFAULT_MFG_INFO 			= "Nordic+ARM mbed";
-	public static String DEFAULT_LOCATION_COORDS    = "37.404064,-121.973136";
-	public static int 	 DEFAULT_ENDPOINT_LIFETIME  = 1200;
+	public static int     DEFAULT_MDS_REST_PORT 	 = 8080;
+	public static int     DEFAULT_MDS_COAP_PORT		 = CoapConstants.DEFAULT_PORT;
+	public static String  DEFAULT_MDS_IPADDRESS 	 = "192.168.1.220";
+	public static String  DEFAULT_MDS_DOMAIN 		 = "domain";
+	public static Boolean USE_DEFAULT_ENDPOINT_NAME  = false;	// true - use DEFAULT_ENDPOINT_NAME below, false - use cop_id-XX:YY from mac address
+	public static String  DEFAULT_ENDPOINT_NAME 	 = "cop_id-1234";
+	public static String  DEFAULT_ENPOINT_TYPE 		 = "policeman HRM";
+	public static String  DEFAULT_MODEL_INFO 		 = "police HRM-MDS gateway";
+	public static String  DEFAULT_MFG_INFO 			 = "Nordic+ARM mbed";
+	public static String  DEFAULT_LOCATION_COORDS    = "37.404064,-121.973136";
+	public static int 	  DEFAULT_ENDPOINT_LIFETIME  = 240;
+	public static String  DEFAULT_MAC_ADDRESS		 = "01:02:03:04:05;06";
+	public static String  DEFAULT_IPV4_ADDRESS		 = "1.2.3.4";
 	//
 	// END TUNABLES
 	//
@@ -137,7 +140,7 @@ public class SensinodeService extends Service {
     private InetSocketAddress MDSAddress;
     private CoapServer server = null;
     private EndPointRegistrator registrator = null;
-    private String endPointHostName = SensinodeService.DEFAULT_ENDPOINT_NAME;
+    private String endPointHostName = this.getLocalIDFromMACAddress(SensinodeService.DEFAULT_ENDPOINT_NAME);
     private String endPointDomain = SensinodeService.DEFAULT_MDS_DOMAIN;
     private final String endPointType = SensinodeService.DEFAULT_ENPOINT_TYPE;
 
@@ -232,7 +235,7 @@ public class SensinodeService extends Service {
         serverAddress = preferences.getString("server_address", SensinodeService.DEFAULT_MDS_IPADDRESS);
         coapPort = preferences.getInt("coap_port", SensinodeService.DEFAULT_MDS_COAP_PORT);
         restPort = preferences.getInt("rest_port", SensinodeService.DEFAULT_MDS_REST_PORT);
-        endPointHostName = preferences.getString("endpoint_id", SensinodeService.DEFAULT_ENDPOINT_NAME);
+        endPointHostName = preferences.getString("endpoint_id", this.getLocalIDFromMACAddress(SensinodeService.DEFAULT_ENDPOINT_NAME));
         endPointDomain = preferences.getString("server_domain", SensinodeService.DEFAULT_MDS_DOMAIN);
         SensinodeService.m_sensinode_instance = this;
     }
@@ -529,16 +532,34 @@ public class SensinodeService extends Service {
     
     @SuppressWarnings("deprecation")
 	private String getLocalIPAddress() {
-      WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
-      WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-      int ip = wifiInfo.getIpAddress();
-      return  Formatter.formatIpAddress(ip);
+    	try {
+	      WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
+	      WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+	      int ip = wifiInfo.getIpAddress();
+	      return  Formatter.formatIpAddress(ip);
+    	}
+    	catch (Exception ex) {
+    		// just return default IPV4 address
+    		return SensinodeService.DEFAULT_IPV4_ADDRESS;
+    	}
     }
     
     private String getLocalMACAddress() {
-      WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
-      WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-      return wifiInfo.getMacAddress();
+    	try {
+	    	WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
+	    	WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+	       	return wifiInfo.getMacAddress();
+    	}
+       	catch (Exception ex) {
+       		// just return the default
+       		return SensinodeService.DEFAULT_MAC_ADDRESS;
+       	}
+    }
+    
+    public String getLocalIDFromMACAddress(String address) {
+    	String macaddr = this.getLocalMACAddress();
+    	if (SensinodeService.USE_DEFAULT_ENDPOINT_NAME == true) return address;
+    	return "cop_id-" + macaddr.substring(0,4);
     }
 
     private void stop() {
