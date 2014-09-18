@@ -174,10 +174,7 @@ public class HRSManager implements BleManager<HRSManagerCallbacks> {
 					hrValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 1);
 				}
 				//This will send callback to HRSActicity when new HR value is received from HR device
-				mCallbacks.onHRValueReceived(hrValue);
-				
-				// Also update MDS with the latest HR value
-				if (SensinodeService.getInstance() != null) SensinodeService.getInstance().getMDSHRMResource().updateHRMValue(hrValue);
+				mCallbacks.onHRValueReceived(hrValue);				
 			}
 		}
 

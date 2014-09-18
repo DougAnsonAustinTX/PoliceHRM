@@ -17,9 +17,9 @@ import org.slf4j.LoggerFactory;
 public class HRMResource extends AbstractObservableResource {
     private final static Logger LOGGER = LoggerFactory.getLogger(HRMResource.class);
     
-    public static String HRM_RESOURCE_NAME = "/dev/addldata";
+    public static String HRM_RESOURCE_NAME = "/dev/hrm";
 
-    private String HRM_value = "0";       	 // HRM value
+    private String HRM_value = "0";       	 // HRM value - default is OFFLINE
      
     // HACK
     private SensinodeService m_service = null;

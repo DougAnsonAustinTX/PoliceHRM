@@ -16,6 +16,8 @@ import no.nordicsemi.android.nrftoolbox.profile.BleProfileActivity;
 
 import org.achartengine.GraphicalView;
 
+import com.arm.sensinode.gateway.SensinodeService;
+
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,9 +36,12 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private static final String GRAPH_COUNTER = "graph_counter";
 	private static final String HR_VALUE = "hr_value";
 
-	private final int MAX_HR_VALUE = 65535;
-	private final int MIN_POSITIVE_VALUE = 0;
-
+	// Tunables - should match main.cpp in PoliceHRM (mbed)
+	private final int HRM_OFF			= 0;		// offline
+	private final int HRM_MIN_VALUE 	= 10;		// min hrm
+	private final int HRM_MAX_VALUE 	= 250;		// max hrm
+	private final int HRM_ITERATION_MS 	= 3000;		// in ms
+	
 	private Handler mHandler = new Handler();
 
 	private boolean isGraphInProgress = false;
@@ -45,8 +50,8 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private LineGraphView mLineGraph;
 	private TextView mHRSValue, mHRSPosition, mBattery;
 
-	private int mInterval = 1000; // 1 second interval
-	private int mHrmValue = 0;
+	private int mInterval = HRM_ITERATION_MS;
+	private int mHrmValue = HRM_OFF;
 	private int mCounter = 0;
 
 	@Override
@@ -124,8 +129,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private Runnable mRepeatTask = new Runnable() {
 		@Override
 		public void run() {
-			if (mHrmValue > 0)
-				updateGraph(mHrmValue);
+			updateGraph(mHrmValue);
 			if (isGraphInProgress)
 				mHandler.postDelayed(mRepeatTask, mInterval);
 		}
@@ -152,7 +156,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				if (value >= MIN_POSITIVE_VALUE && value <= MAX_HR_VALUE) {
+				if (value != HRM_OFF) {
 					mHRSValue.setText(Integer.toString(value));
 				} else {
 					mHRSValue.setText(R.string.not_available_value);
@@ -189,10 +193,21 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		startShowGraph();
 	}
 
+	// HOOK: when we update our UI, lets also update MDS...
 	@Override
 	public void onHRValueReceived(int value) {
 		mHrmValue = value;
+		
+		// boundary checks...
+		if (mHrmValue < 0) mHrmValue = HRM_OFF;
+		else if (mHrmValue <= HRM_MIN_VALUE) mHrmValue = HRM_MIN_VALUE;
+		else if (mHrmValue >= HRM_MAX_VALUE) mHrmValue = HRM_MAX_VALUE;
+		
+		// set the HRM value
 		setHRSValueOnView(mHrmValue);
+		
+		// Also update MDS with the latest HRM value
+		if (SensinodeService.getInstance() != null) SensinodeService.getInstance().getMDSHRMResource().updateHRMValue(mHrmValue);
 	}
 
 	@Override
