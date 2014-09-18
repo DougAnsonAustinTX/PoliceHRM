@@ -109,7 +109,7 @@ public class SensinodeService extends Service {
 	public static String  DEFAULT_MDS_IPADDRESS 	 = "192.168.1.220";
 	public static String  DEFAULT_MDS_DOMAIN 		 = "domain";
 	public static Boolean USE_DEFAULT_ENDPOINT_NAME  = false;	// true - use DEFAULT_ENDPOINT_NAME below, false - use cop_id-XX:YY from mac address
-	public static String  DEFAULT_ENDPOINT_NAME 	 = "cop_id-1234";
+	public static String  DEFAULT_ENDPOINT_NAME 	 = "cop-1234";
 	public static String  DEFAULT_ENPOINT_TYPE 		 = "policeman HRM";
 	public static String  DEFAULT_MODEL_INFO 		 = "police HRM-MDS gateway";
 	public static String  DEFAULT_MFG_INFO 			 = "Nordic+ARM mbed";
@@ -160,9 +160,17 @@ public class SensinodeService extends Service {
     //
     // BTLE-MDS BINDING: We must have access to the resources that we alter when BTLE events/values are received
     //
-    public static SensinodeService getInstance() { return SensinodeService.m_sensinode_instance; }
+    public static SensinodeService getInstance() { 
+    	if (SensinodeService.m_sensinode_instance != null)
+    		return SensinodeService.m_sensinode_instance; 
+    	return new SensinodeService();
+    }
+    
     public HRMResource getMDSHRMResource() { return this.hrm_resource; }
     public BatteryResource getMDSBatteryResource() { return this.battery_resource; }
+    
+    // special constructor to allocate temp instance for access to mac address stuff
+    public SensinodeService() { super(); }
     
     //
     // BEGIN RESOURCE SECTION
@@ -559,7 +567,7 @@ public class SensinodeService extends Service {
     public String getLocalIDFromMACAddress(String address) {
     	String macaddr = this.getLocalMACAddress();
     	if (SensinodeService.USE_DEFAULT_ENDPOINT_NAME == true) return address;
-    	return "cop_id-" + macaddr.substring(0,4);
+    	return "cop-" + macaddr.substring(0,5).replace(":","");		// cannot be very long... and no _ or :
     }
 
     private void stop() {
