@@ -40,7 +40,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private final int HRM_OFF			= 0;		// offline
 	private final int HRM_MIN_VALUE 	= 10;		// min hrm
 	private final int HRM_MAX_VALUE 	= 250;		// max hrm
-	private final int HRM_ITERATION_MS 	= 3000;		// in ms
+	private final int HRM_ITERATION_MS 	= 1000;		// in ms
 	
 	private Handler mHandler = new Handler();
 
@@ -137,7 +137,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 	void startShowGraph() {
 		isGraphInProgress = true;
-		mRepeatTask.run();
+		this.runOnUiThread(mRepeatTask);
 	}
 
 	void stopShowGraph() {
@@ -221,6 +221,9 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 				stopShowGraph();
 			}
 		});
+		
+		// tell mbed device server that the sensor is disconnected as well...
+		SensinodeService.getInstance().onSensorDisconnected();
 	}
 
 	@Override

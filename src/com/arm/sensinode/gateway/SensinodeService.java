@@ -18,14 +18,11 @@ import android.widget.Toast;
 
 
 
-
-
 // Resources
 import com.arm.sensinode.gateway.resources.BatteryResource;
 import com.arm.sensinode.gateway.resources.HRMResource;
 import com.arm.sensinode.gateway.resources.LocationResource;
-import com.arm.sensinode.gateway.resources.ManufacturerResource;
-import com.arm.sensinode.gateway.resources.ModelResource;
+import com.arm.sensinode.gateway.resources.StringObservableResource;
 
 // Sensinode imports
 import com.sensinode.coap.BlockOption.BlockSize;
@@ -34,7 +31,6 @@ import com.sensinode.coap.server.CoapServer;
 import com.sensinode.coap.server.EndPointRegistrator;
 import com.sensinode.coap.server.EndPointRegistrator.RegistrationState;
 import com.sensinode.coap.utils.Callback;
-import com.sensinode.coap.utils.SimpleCoapResource;
 import com.sensinode.coap.utils.SyncCallback;
 
 import java.io.BufferedReader;
@@ -114,9 +110,10 @@ public class SensinodeService extends Service {
 	public static String  DEFAULT_MODEL_INFO 		 = "police HRM-MDS gateway";
 	public static String  DEFAULT_MFG_INFO 			 = "Nordic+ARM mbed";
 	public static String  DEFAULT_LOCATION_COORDS    = "37.404064,-121.973136";
-	public static int 	  DEFAULT_ENDPOINT_LIFETIME  = 240;
+	public static int 	  DEFAULT_ENDPOINT_LIFETIME  = 120;
 	public static String  DEFAULT_MAC_ADDRESS		 = "01:02:03:04:05;06";
 	public static String  DEFAULT_IPV4_ADDRESS		 = "1.2.3.4";
+	public static String  HRM_OFFLINE				 = "0";	// must align with mbed server apps icon configuration
 	//
 	// END TUNABLES
 	//
@@ -147,8 +144,6 @@ public class SensinodeService extends Service {
     // Resources
     private BatteryResource battery_resource;
     private HRMResource hrm_resource;
-    private ModelResource model_resource;
-    private ManufacturerResource manufacturer_resource;
     private LocationResource location_resource;
 
     // Get preferences
@@ -179,41 +174,33 @@ public class SensinodeService extends Service {
     //
     private void createMDSResources() {
     	// IP Address
-        SimpleCoapResource ipaddr = new SimpleCoapResource(this.getLocalIPAddress(), "", 0);
+    	StringObservableResource ipaddr = new StringObservableResource("/nw/ipaddr",this.getLocalIPAddress(),server);
         ipaddr.getLink().setInterfaceDescription("ns:v6addr");
-        server.addRequestHandler("/nw/ipaddr", ipaddr);
+        server.addRequestHandler(ipaddr.name(), ipaddr);
         
         // MAC Address
-        SimpleCoapResource macaddr = new SimpleCoapResource(this.getLocalMACAddress(), "", 0);
+        StringObservableResource macaddr = new StringObservableResource("/nw/macaddr",this.getLocalMACAddress(),server);
         macaddr.getLink().setInterfaceDescription("ns:macaddr");
-        server.addRequestHandler("/nw/macaddr", macaddr);
+        server.addRequestHandler(macaddr.name(), macaddr);
+         
+        // Position
+        StringObservableResource position = new StringObservableResource("/dev/location","Santa Clara CA",server);
+        position.getLink().setInterfaceDescription("ns:location");
+        server.addRequestHandler(position.name(), position); 
         
-        // GPS Fix
-        SimpleCoapResource gpsfix = new SimpleCoapResource("1", "", 0);
-        gpsfix.getLink().setInterfaceDescription("ns:gpsfix");
-        server.addRequestHandler("/gps/fix", gpsfix);
+        // Model
+        StringObservableResource model = new StringObservableResource("/dev/mdl",SensinodeService.DEFAULT_MODEL_INFO,server);
+        //model.getLink().setInterfaceDescription("ns:location");
+        server.addRequestHandler(model.name(), model); 
         
-        // GPS Initialized
-        SimpleCoapResource gpsint = new SimpleCoapResource("60", "ucum:s", 0);
-        gpsint.getLink().setInterfaceDescription("ns:gpsint");
-        server.addRequestHandler("/gps/int", gpsfix);
+        // MFG
+        StringObservableResource mfg = new StringObservableResource("/dev/mfg",SensinodeService.DEFAULT_MFG_INFO,server);
+        //mfg.getLink().setInterfaceDescription("ns:location");
+        server.addRequestHandler(mfg.name(), mfg); 
         
-        // GPS lock resource
+        // Add Location resource
         location_resource = new LocationResource(getApplicationContext(), server);
         server.addRequestHandler("/gps/loc", location_resource);
-        
-        // Location Resource
-        SimpleCoapResource location = new SimpleCoapResource("Santa Clara CA", "", 0);
-        location.getLink().setInterfaceDescription("ns:location");
-        server.addRequestHandler("/dev/location", location);
-
-        // Add Manufacturer resource
-        manufacturer_resource = new ManufacturerResource();
-        server.addRequestHandler("/dev/mfg", manufacturer_resource);
-
-        // Add Model resource
-        model_resource = new ModelResource();
-        server.addRequestHandler("/dev/mdl", model_resource);
 
         // Add battery info resource
         battery_resource = new BatteryResource(getApplicationContext(), server);
@@ -224,6 +211,11 @@ public class SensinodeService extends Service {
         hrm_resource = new HRMResource(getApplicationContext(), server);
         hrm_resource.setService(this);
         server.addRequestHandler(HRMResource.HRM_RESOURCE_NAME, hrm_resource);
+    }
+    
+    // sensor has disconnected - so handle it accordingly
+    public void onSensorDisconnected() {
+    	hrm_resource.disconnected();
     }
     
     //
@@ -405,8 +397,8 @@ public class SensinodeService extends Service {
     // HACK: use HTTP to put a resource value directly
     public boolean putResourceValue(String urlstr,String value) {
     	boolean success = false;
-    	
-    	try {
+
+		try {
 	    	// use Apache HTTP
 	    	DefaultHttpClient httpClient = new DefaultHttpClient();
 	    	
@@ -416,19 +408,22 @@ public class SensinodeService extends Service {
 	    	StringEntity input = new StringEntity(value);
 	    	input.setContentType("text/plain");
 	    	
-	    	putRequest.setHeader("Authorization", "Basic " + Base64.encodeToString(this.MDS_authentication.getBytes(), Base64.NO_WRAP));
+	    	putRequest.setHeader("Authorization", "Basic " + Base64.encodeToString(MDS_authentication.getBytes(), Base64.NO_WRAP));
 	
 	    	putRequest.setEntity(input);
 	    	HttpResponse response = httpClient.execute(putRequest);
 	    	
 	    	LOGGER.debug("putResourceValue response code: " + response.getStatusLine().getStatusCode());
-	    	success = true;
+	    	
+	    	int code = response.getStatusLine().getStatusCode() - 200;
+	    	if (code >= 0 && code < 100) success = true;
     	}
     	catch (Exception ex) {
     		showToast("Caught Exception in putResourceValue: " + ex.getMessage(),Toast.LENGTH_LONG);
+    		ex.printStackTrace();
     		LOGGER.debug("Caught Exception in putResourceValue: " + ex.getMessage());
-    		success = false;
     	}
+   
     	
     	// return our status
     	return success;

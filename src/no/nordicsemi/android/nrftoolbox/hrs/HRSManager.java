@@ -88,6 +88,9 @@ public class HRSManager implements BleManager<HRSManagerCallbacks> {
 		if (mBluetoothGatt != null) {
 			mBluetoothGatt.disconnect();
 		}
+		
+		// tell mbed device server that the sensor is disconnected as well...
+		SensinodeService.getInstance().onSensorDisconnected();
 	}
 
 	/**

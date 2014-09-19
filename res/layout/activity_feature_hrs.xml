@@ -64,7 +64,7 @@
         android:freezesText="true"
         android:maxLines="1"
         android:text="@string/not_available_value"
-        android:textSize="45sp" />
+        android:textSize="40sp" />
 
     <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
         android:layout_width="wrap_content"

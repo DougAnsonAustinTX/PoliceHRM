@@ -19,7 +19,7 @@ public class HRMResource extends AbstractObservableResource {
     
     public static String HRM_RESOURCE_NAME = "/dev/hrm";
 
-    private String HRM_value = "0";       	 // HRM value - default is OFFLINE
+    private String HRM_value = SensinodeService.HRM_OFFLINE;       	 // HRM value - default is OFFLINE
      
     // HACK
     private SensinodeService m_service = null;
@@ -33,11 +33,20 @@ public class HRMResource extends AbstractObservableResource {
     }
     
     public void setService(SensinodeService service) { this.m_service = service; }
+    
+    // disconnected sensor callback
+    public void disconnected() {
+    	// reset HRM_value
+    	HRM_value = SensinodeService.HRM_OFFLINE;
+    	
+    	// call nt()
+    	nt();
+    }
 
     // HACK force NSP to accept the new HRM value immediately... notifyChange() is way to slow... takes almost 60 seconds.
     public void publishHRMValue(String hrm_value) {
     	if (this.m_service != null) {
-    		LOGGER.debug("Sending HRM value through PUT directly...");
+    		LOGGER.debug("Sending HRM value (" + hrm_value + ") through PUT directly...");
     		String url = this.m_service.buildResourceURL(this.m_service.getEndpoint(), HRMResource.HRM_RESOURCE_NAME);
             boolean success = this.m_service.putResourceValue(url,hrm_value);
             if (success) LOGGER.debug("HRM value PUT successful...");

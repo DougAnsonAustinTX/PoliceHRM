@@ -28,7 +28,7 @@ public class LocationResource extends AbstractObservableResource implements Loca
     private String last_location = SensinodeService.DEFAULT_LOCATION_COORDS; 
  
     // Minimum update interval (in seconds)
-    private final int UPDATE_INTERVAL = 120;
+    private final int UPDATE_INTERVAL = 10;
 
     public LocationResource(Context context, CoapServer server) {
         super(server);
