@@ -215,7 +215,7 @@ public class SensinodeService extends Service {
     
     // sensor has disconnected - so handle it accordingly
     public void onSensorDisconnected() {
-    	hrm_resource.disconnected();
+    	if (hrm_resource != null) hrm_resource.disconnected();
     }
     
     //
