@@ -54,13 +54,23 @@ public class NSPConfigActivity extends Activity {
     private EditText endpoint_id_box;
 
     private SharedPreferences preferences;
+    
+    private Boolean first_launch = true;
 
     void initializeServiceStatus() {
-      boolean is_running = preferences.getBoolean("service_enabled",false);
-      if (!is_running) {
-          preferences.edit().putBoolean("service_enabled", false);
+      first_launch = preferences.contains("service_enabled");
+      if (first_launch) {
+    	  preferences.edit().putBoolean("service_enabled", false);
           preferences.edit().commit();
       }
+      else {
+    	  first_launch = false;
+	      boolean is_running = preferences.getBoolean("service_enabled",false);
+	      if (!is_running) {
+	          preferences.edit().putBoolean("service_enabled", false);
+	          preferences.edit().commit();
+	      }
+       }
     }
     
     void updateServiceStatus(boolean enabled) {
@@ -91,6 +101,9 @@ public class NSPConfigActivity extends Activity {
             status_switch.setTextOff(getString(R.string.switch_off));
             status_switch.setTextOn(getString(R.string.switch_on));
         }
+        
+        // initial state of the switch should be off
+        status_switch.setChecked(false);
 
         if (status_switch != null) {
             // Implement a listener for the state of the switch
@@ -443,14 +456,7 @@ public class NSPConfigActivity extends Activity {
         if (valid) {
             status_switch.setEnabled(true);
             update_switch_only = true;
-            if (preferences.getBoolean("service_enabled",true)) {
-                status_switch.setChecked(true);
-                // start the monitoring service
-               }
-            else {
-            	status_switch.setChecked(false);
-            	// stop the monitoring service
-             }
+            status_switch.setChecked(preferences.getBoolean("service_enabled",false));
         }
         else {
             status_switch.setEnabled(false);
