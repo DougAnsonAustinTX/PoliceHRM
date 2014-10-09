@@ -97,6 +97,9 @@ import org.slf4j.LoggerFactory;
 public class SensinodeService extends Service {
 	private static SensinodeService m_sensinode_instance = null;
 	
+	// Moscone West 37.783588,-122.403392
+	// San Jose: 37.404064,-121.973136
+	
 	//
 	// BEGIN TUNABLES
 	//
@@ -109,7 +112,7 @@ public class SensinodeService extends Service {
 	public static String  DEFAULT_ENPOINT_TYPE 		 = "policeman HRM";
 	public static String  DEFAULT_MODEL_INFO 		 = "police HRM-MDS gateway";
 	public static String  DEFAULT_MFG_INFO 			 = "Nordic+ARM mbed";
-	public static String  DEFAULT_LOCATION_COORDS    = "37.404064,-121.973136";
+	public static String  DEFAULT_LOCATION_COORDS    = "37.783588,-122.403392";
 	public static int 	  DEFAULT_ENDPOINT_LIFETIME  = 120;
 	public static String  DEFAULT_MAC_ADDRESS		 = "01:02:03:04:05;06";
 	public static String  DEFAULT_IPV4_ADDRESS		 = "1.2.3.4";
@@ -184,7 +187,7 @@ public class SensinodeService extends Service {
         server.addRequestHandler(macaddr.name(), macaddr);
          
         // Position
-        StringObservableResource position = new StringObservableResource("/dev/location","Santa Clara CA",server);
+        StringObservableResource position = new StringObservableResource("/dev/location","Moscone West",server);
         position.getLink().setInterfaceDescription("ns:location");
         server.addRequestHandler(position.name(), position); 
         
