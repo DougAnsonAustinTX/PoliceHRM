@@ -103,9 +103,12 @@ public class SensinodeService extends Service {
 	//
 	// BEGIN TUNABLES
 	//
-	public static int     DEFAULT_MDS_REST_PORT 	 = 8080;
-	public static int     DEFAULT_MDS_COAP_PORT		 = CoapConstants.DEFAULT_PORT;
-	public static String  DEFAULT_MDS_IPADDRESS 	 = "192.168.1.220";
+	// DA: updated default REST, COAP ports for workshop... also IPADDRESS set to www.ansonworks.com for hosted instance. 
+	//
+	//
+	public static int     DEFAULT_MDS_REST_PORT 	 = 24198; // 8080;
+	public static int     DEFAULT_MDS_COAP_PORT		 = 26395; // CoapConstants.DEFAULT_PORT;
+	public static String  DEFAULT_MDS_IPADDRESS 	 = "www.ansonworks.com";
 	public static String  DEFAULT_MDS_DOMAIN 		 = "domain";
 	public static Boolean USE_DEFAULT_ENDPOINT_NAME  = false;	// true - use DEFAULT_ENDPOINT_NAME below, false - use cop_id-XX:YY from mac address
 	public static String  DEFAULT_ENDPOINT_NAME 	 = "cop-1234";
